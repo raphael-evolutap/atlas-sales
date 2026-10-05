@@ -1,0 +1,1 @@
+{"files.watcherExclude": {"**/vendor/**": true, "**/node_modules/**": true, "**/storage/framework/**": true}, "search.exclude": {"**/vendor": true, "**/node_modules": true, "**/storage": true}}
