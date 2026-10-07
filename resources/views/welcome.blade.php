@@ -6,6 +6,9 @@
 
         <title>{{ config('app.name', 'Laravel') }}</title>
 
+        <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}">
+        <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16x16.png') }}">
+
         <style>
             html, body {
                 height: 100%;
@@ -24,12 +27,12 @@
                 width: 60%;
                 height: auto;
             }
-        </style>
+        </link>
     </head>
     <body>
         <img
             src="{{ asset('images/logo-atlas.png') }}"
-            alt="{{ config('app.name', 'Atlas') }}"
+            alt="Universo Atlas"
         >
     </body>
 </html>
