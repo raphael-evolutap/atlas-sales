@@ -1,6 +1,8 @@
 <?php
 
 declare(strict_types=1);
+
+use App\Filament\Resources\Vendas\VendaResource;
 use BezhanSalleh\FilamentShield\Resources\Roles\RoleResource;
 use Filament\Pages\Dashboard;
 use Filament\Widgets\AccountWidget;
@@ -192,6 +194,11 @@ return [
                 'create',
                 'update',
                 'delete',
+            ],
+            VendaResource::class => [
+                'fechar',
+                'cancelar',
+                'enviarComprovantes',
             ],
         ],
         'exclude' => [

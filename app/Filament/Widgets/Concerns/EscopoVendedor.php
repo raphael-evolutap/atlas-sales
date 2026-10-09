@@ -25,10 +25,17 @@ trait EscopoVendedor
         return $query;
     }
 
-    protected function ehAdmin(): bool
+    protected function isAdmin(): bool
     {
         $user = auth()->user();
 
         return $user !== null && $user->hasRole('Admin');
+    }
+
+    protected function isVendedor(): bool
+    {
+        $user = auth()->user();
+
+        return $user !== null && $user->hasRole('Vendedor');
     }
 }

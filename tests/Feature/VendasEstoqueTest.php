@@ -44,7 +44,7 @@ function itemVenda(Produto $produto, Cidade $cidade, int $quantidade): array
     ];
 }
 
-it('venda aberta não toca estoque', function () {
+it('venda aberta baixa estoque da cidade do item e cria movimentação', function () {
     $produto = Produto::factory()->create(['estoque_qtd' => 10]);
     ProdutoEstoque::factory()->create([
         'produto_id' => $produto->getKey(),
@@ -55,11 +55,12 @@ it('venda aberta não toca estoque', function () {
     $venda = $this->service->criar(dadosVenda(), [itemVenda($produto, $this->cidade, 2)]);
 
     expect($venda->status)->toBe(StatusVenda::Aberta)
-        ->and($produto->fresh()->estoque_qtd)->toBe(10)
-        ->and($produto->movimentacoes()->count())->toBe(0);
+        ->and($produto->fresh()->estoque_qtd)->toBe(8)
+        ->and($produto->estoques()->first()->quantidade)->toBe(8)
+        ->and($venda->movimentacoes()->where('tipo', 'saida')->where('motivo', 'venda')->count())->toBe(1);
 });
 
-it('fechar venda baixa estoque da cidade do item e cria movimentação', function () {
+it('fechar venda confirma a baixa sem movimentar estoque de novo', function () {
     $produto = Produto::factory()->create(['estoque_qtd' => 10]);
     ProdutoEstoque::factory()->create([
         'produto_id' => $produto->getKey(),
@@ -71,9 +72,8 @@ it('fechar venda baixa estoque da cidade do item e cria movimentação', functio
     $this->service->fechar($venda);
 
     expect($produto->fresh()->estoque_qtd)->toBe(8)
-        ->and($produto->estoques()->first()->quantidade)->toBe(8)
         ->and($venda->fresh()->status)->toBe(StatusVenda::Fechada)
-        ->and($venda->movimentacoes()->where('tipo', 'saida')->where('motivo', 'venda')->count())->toBe(1);
+        ->and($venda->movimentacoes()->count())->toBe(1);
 });
 
 it('baixa estoque somente da cidade escolhida no item', function () {
@@ -89,8 +89,7 @@ it('baixa estoque somente da cidade escolhida no item', function () {
         'quantidade' => 10,
     ]);
 
-    $venda = $this->service->criar(dadosVenda(), [itemVenda($produto, $this->cidade, 3)]);
-    $this->service->fechar($venda);
+    $this->service->criar(dadosVenda(), [itemVenda($produto, $this->cidade, 3)]);
 
     expect($produto->estoques()->where('cidade_id', $this->cidade->getKey())->first()->quantidade)->toBe(7)
         ->and($produto->estoques()->where('cidade_id', $this->outraCidade->getKey())->first()->quantidade)->toBe(10)
@@ -128,6 +127,46 @@ it('cancelar venda devolve estoque na cidade do item', function () {
         ->and($venda->movimentacoes()->where('tipo', 'entrada')->where('motivo', MotivoMovimentacao::Estorno)->count())->toBe(1);
 });
 
+it('cancelar venda aberta devolve estoque', function () {
+    $produto = Produto::factory()->create(['estoque_qtd' => 10]);
+    ProdutoEstoque::factory()->create([
+        'produto_id' => $produto->getKey(),
+        'cidade_id' => $this->cidade->getKey(),
+        'quantidade' => 10,
+    ]);
+
+    $venda = $this->service->criar(dadosVenda(), [itemVenda($produto, $this->cidade, 2)]);
+    $this->service->cancelar($venda);
+
+    expect($produto->fresh()->estoque_qtd)->toBe(10)
+        ->and($produto->estoques()->first()->quantidade)->toBe(10)
+        ->and($venda->fresh()->status)->toBe(StatusVenda::Cancelada);
+});
+
+it('não cancela venda já cancelada', function () {
+    $produto = Produto::factory()->create(['estoque_qtd' => 10]);
+    ProdutoEstoque::factory()->create([
+        'produto_id' => $produto->getKey(),
+        'cidade_id' => $this->cidade->getKey(),
+        'quantidade' => 10,
+    ]);
+
+    $venda = $this->service->criar(dadosVenda(), [itemVenda($produto, $this->cidade, 2)]);
+    $this->service->cancelar($venda);
+    $this->service->cancelar($venda);
+})->throws(AcaoInvalidaException::class);
+
+it('rejeita venda aberta com estoque insuficiente na cidade', function () {
+    $produto = Produto::factory()->create(['estoque_qtd' => 1]);
+    ProdutoEstoque::factory()->create([
+        'produto_id' => $produto->getKey(),
+        'cidade_id' => $this->cidade->getKey(),
+        'quantidade' => 1,
+    ]);
+
+    $this->service->criar(dadosVenda(), [itemVenda($produto, $this->cidade, 5)]);
+})->throws(EstoqueInsuficienteException::class);
+
 it('rejeita venda fechada com estoque insuficiente na cidade', function () {
     $produto = Produto::factory()->create(['estoque_qtd' => 1]);
     ProdutoEstoque::factory()->create([
@@ -146,6 +185,11 @@ it('rejeita venda fechada com estoque insuficiente na cidade', function () {
 
 it('calcula total com snapshot de preço', function () {
     $produto = Produto::factory()->create(['preco_venda_int' => 1050]);
+    ProdutoEstoque::factory()->create([
+        'produto_id' => $produto->getKey(),
+        'cidade_id' => $this->cidade->getKey(),
+        'quantidade' => 10,
+    ]);
 
     $venda = $this->service->criar(dadosVenda(['desconto_int' => 50]), [itemVenda($produto, $this->cidade, 2)]);
 
@@ -155,6 +199,11 @@ it('calcula total com snapshot de preço', function () {
 
 it('snapshot de preço não muda quando produto muda', function () {
     $produto = Produto::factory()->create(['preco_venda_int' => 1000]);
+    ProdutoEstoque::factory()->create([
+        'produto_id' => $produto->getKey(),
+        'cidade_id' => $this->cidade->getKey(),
+        'quantidade' => 10,
+    ]);
 
     $venda = $this->service->criar(dadosVenda(), [itemVenda($produto, $this->cidade, 1)]);
 
@@ -175,3 +224,34 @@ it('não fecha venda cancelada ou já fechada', function () {
 
     $this->service->fechar($venda);
 })->throws(AcaoInvalidaException::class);
+
+it('calcula comissão do item pelo percentual do produto', function () {
+    $produto = Produto::factory()->create(['preco_venda_int' => 1999, 'comissao_pct' => 2.5]);
+    ProdutoEstoque::factory()->create([
+        'produto_id' => $produto->getKey(),
+        'cidade_id' => $this->cidade->getKey(),
+        'quantidade' => 10,
+    ]);
+
+    $venda = $this->service->criar(dadosVenda(), [itemVenda($produto, $this->cidade, 3)]);
+    $item = $venda->itens->first();
+
+    // 3 × 19,99 = 59,97 → 2,5% = 1,49925 → R$ 1,50
+    expect($item->comissao_pct)->toBe('2.50')
+        ->and($item->comissao_int)->toBe(150);
+});
+
+it('comissão da venda não muda quando o percentual do produto muda', function () {
+    $produto = Produto::factory()->create(['preco_venda_int' => 1000, 'comissao_pct' => 10]);
+    ProdutoEstoque::factory()->create([
+        'produto_id' => $produto->getKey(),
+        'cidade_id' => $this->cidade->getKey(),
+        'quantidade' => 10,
+    ]);
+
+    $venda = $this->service->criar(dadosVenda(), [itemVenda($produto, $this->cidade, 1)]);
+
+    $produto->update(['comissao_pct' => 50]);
+
+    expect($venda->itens->first()->fresh()->comissao_int)->toBe(100);
+});

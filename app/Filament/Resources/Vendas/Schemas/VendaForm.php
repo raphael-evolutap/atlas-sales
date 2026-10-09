@@ -6,11 +6,13 @@ use App\Enums\StatusVenda;
 use App\Models\Cidade;
 use App\Models\Produto;
 use App\Models\ProdutoEstoque;
+use App\Models\Venda;
 use App\Models\Vendedor;
 use App\Support\Money;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Utilities\Get;
@@ -38,10 +40,11 @@ class VendaForm
                     ->required()
                     ->default(now()),
                 Select::make('status')
-                    ->options(collect(StatusVenda::cases())->mapWithKeys(fn ($case) => [$case->value => ucfirst($case->value)]))
+                    ->options(collect([StatusVenda::Aberta, StatusVenda::Fechada])->mapWithKeys(fn ($case) => [$case->value => ucfirst($case->value)]))
                     ->default(StatusVenda::Aberta->value)
+                    ->disabled(fn () => auth()->user()?->isVendedor())
                     ->required()
-                    ->helperText('Fechada baixa o estoque; aberta não.'),
+                    ->helperText('O estoque é baixado ao registrar a venda; fechada confirma a baixa.'),
                 FilamentPtbrFormFieldsMoney::make('desconto_int')
                     ->label('Desconto')
                     ->prefix('R$')
@@ -102,6 +105,24 @@ class VendaForm
                     ->defaultItems(1)
                     ->required()
                     ->columnSpanFull(),
+                self::comprovantes(),
             ]);
+    }
+
+    public static function comprovantes(): SpatieMediaLibraryFileUpload
+    {
+        return SpatieMediaLibraryFileUpload::make('comprovantes')
+            ->label('Comprovantes de pagamento')
+            ->collection(Venda::COLECAO_COMPROVANTES)
+            ->disk('local')
+            ->visibility('private')
+            ->multiple()
+            ->preserveFilenames()
+            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'application/pdf'])
+            ->maxSize(5120)
+            ->openable()
+            ->downloadable()
+            ->helperText('Imagem (JPG, PNG, WEBP) ou PDF, até 5 MB.')
+            ->panelLayout('grid');
     }
 }

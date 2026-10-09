@@ -5,6 +5,7 @@ namespace App\Filament\Widgets;
 use App\Enums\StatusVenda;
 use App\Filament\Widgets\Concerns\EscopoVendedor;
 use App\Models\Cliente;
+use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget;
@@ -13,6 +14,7 @@ use Illuminate\Database\Eloquent\Builder;
 class VendasPorCliente extends TableWidget
 {
     use EscopoVendedor;
+    use HasWidgetShield;
 
     protected static ?string $heading = 'Vendas por cliente';
 
@@ -27,7 +29,7 @@ class VendasPorCliente extends TableWidget
                 ->selectRaw('coalesce(sum(case when vendas.status = ? then vendas.valor_total_int else 0 end), 0) as total_int', [StatusVenda::Fechada->value])
                 ->join('vendas', 'vendas.cliente_id', '=', 'clientes.id')
                 ->whereIn('vendas.status', [StatusVenda::Fechada->value, StatusVenda::Aberta->value])
-                ->when(! $this->ehAdmin(), function (Builder $query) {
+                ->when(! $this->isAdmin(), function (Builder $query) {
                     $vendedorId = auth()->user()?->vendedor?->getKey();
 
                     return $query->where('vendas.vendedor_id', $vendedorId);

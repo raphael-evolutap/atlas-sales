@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Produtos\RelationManagers;
 
 use App\Enums\MotivoMovimentacao;
 use App\Enums\TipoMovimentacao;
+use App\Filament\Actions\TransferirEstoqueAction;
 use App\Models\Cidade;
 use App\Services\EstoqueService;
 use Filament\Actions\Action;
@@ -120,6 +121,7 @@ class EstoquesRelationManager extends RelationManager
                             observacoes: 'Ajuste manual (estoque por cidade)',
                         );
                     }),
+                TransferirEstoqueAction::daCidade(),
                 EditAction::make(),
             ])
             ->toolbarActions([

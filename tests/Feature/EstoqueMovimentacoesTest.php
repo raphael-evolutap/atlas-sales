@@ -3,11 +3,15 @@
 use App\Enums\MotivoMovimentacao;
 use App\Enums\TipoMovimentacao;
 use App\Exceptions\EstoqueInsuficienteException;
+use App\Filament\Resources\Movimentacaos\Pages\ListMovimentacaos;
 use App\Models\Cidade;
+use App\Models\Movimentacao;
 use App\Models\Produto;
 use App\Models\ProdutoEstoque;
 use App\Models\User;
 use App\Services\EstoqueService;
+use Database\Seeders\ShieldSeeder;
+use Livewire\Livewire;
 
 use function Pest\Laravel\actingAs;
 
@@ -141,4 +145,16 @@ it('saída em uma cidade não afeta saldo de outra', function () {
 
     expect($produto->fresh()->estoque_qtd)->toBe(5)
         ->and($produto->estoques()->where('cidade_id', $outra->getKey())->first()->quantidade)->toBe(5);
+});
+
+it('listagem mostra as movimentações mais recentes primeiro', function () {
+    $this->seed(ShieldSeeder::class);
+    $this->user->assignRole('Admin');
+
+    $antigas = Movimentacao::factory()->count(10)->create(['created_at' => now()->subDay()]);
+    $recente = Movimentacao::factory()->create();
+
+    Livewire::test(ListMovimentacaos::class)
+        ->assertCanSeeTableRecords([$recente])
+        ->assertCanNotSeeTableRecords([$antigas->first()]);
 });

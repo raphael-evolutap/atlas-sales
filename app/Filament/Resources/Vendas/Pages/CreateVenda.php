@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Vendas\Pages;
 
+use App\Enums\StatusVenda;
 use App\Filament\Resources\Vendas\VendaResource;
 use App\Models\Venda;
 use App\Services\VendaService;
@@ -21,6 +22,17 @@ class CreateVenda extends CreateRecord
             ])
             ->all();
         unset($data['itens']);
+
+        // Campos desabilitados para vendedor não são enviados: a venda é
+        // sempre dele e entra aberta.
+        $user = auth()->user();
+        if ($user?->isVendedor()) {
+            $data['status'] = StatusVenda::Aberta;
+
+            if ($user->vendedor) {
+                $data['vendedor_id'] = $user->vendedor->getKey();
+            }
+        }
 
         return app(VendaService::class)->criar($data, $itens);
     }

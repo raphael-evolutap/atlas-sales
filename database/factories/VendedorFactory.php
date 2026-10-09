@@ -21,7 +21,6 @@ class VendedorFactory extends Factory
         return [
             'user_id' => User::factory(),
             'telefone' => $this->faker->phoneNumber(),
-            'comissao_pct' => 5,
             'ativo' => true,
         ];
     }

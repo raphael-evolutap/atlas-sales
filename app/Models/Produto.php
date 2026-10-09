@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['fornecedor_id', 'grupo_id', 'nome', 'sku', 'unidade', 'preco_custo_int', 'preco_venda_int', 'estoque_qtd', 'estoque_minimo', 'ativo'])]
+#[Fillable(['fornecedor_id', 'grupo_id', 'nome', 'sku', 'unidade', 'preco_custo_int', 'preco_venda_int', 'comissao_pct', 'estoque_qtd', 'estoque_minimo', 'ativo'])]
 #[Hidden([])]
 class Produto extends Model
 {
@@ -27,6 +27,7 @@ class Produto extends Model
         return [
             'preco_custo_int' => 'integer',
             'preco_venda_int' => 'integer',
+            'comissao_pct' => 'decimal:2',
             'estoque_qtd' => 'integer',
             'estoque_minimo' => 'integer',
             'ativo' => 'boolean',

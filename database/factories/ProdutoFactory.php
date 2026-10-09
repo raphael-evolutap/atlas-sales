@@ -28,6 +28,7 @@ class ProdutoFactory extends Factory
             'unidade' => 'un',
             'preco_custo_int' => $this->faker->numberBetween(100, 5000),
             'preco_venda_int' => $this->faker->numberBetween(500, 10000),
+            'comissao_pct' => 5,
             'estoque_qtd' => 0,
             'estoque_minimo' => 5,
             'ativo' => true,

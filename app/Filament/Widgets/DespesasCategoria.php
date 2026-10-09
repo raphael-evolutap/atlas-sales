@@ -3,10 +3,13 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Despesa;
+use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
 use Filament\Widgets\ChartWidget;
 
 class DespesasCategoria extends ChartWidget
 {
+    use HasWidgetShield;
+
     protected ?string $heading = 'Despesas por categoria';
 
     protected static ?int $sort = 2;

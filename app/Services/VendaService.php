@@ -17,12 +17,13 @@ class VendaService
     public function __construct(private EstoqueService $estoque) {}
 
     /**
-     * Cria a venda com itens (snapshot de preço e cidade) e calcula o total.
+     * Cria a venda com itens (snapshot de preço, comissão e cidade), calcula o total
+     * e já baixa o estoque dos itens.
      *
      * @param  array<string, mixed>  $dados  cliente_id, vendedor_id, data_venda, desconto_int, observacoes, status
      * @param  array<int, array{produto_id: int, cidade_id: int, quantidade: int}>  $itens
      *
-     * @throws EstoqueInsuficienteException quando status = fechada e saldo insuficiente
+     * @throws EstoqueInsuficienteException
      */
     public function criar(array $dados, array $itens, ?User $usuario = null): Venda
     {
@@ -35,74 +36,97 @@ class VendaService
 
             foreach ($itens as $item) {
                 $produto = Produto::findOrFail($item['produto_id']);
+                $subtotal = $produto->preco_venda_int * $item['quantidade'];
+
                 $venda->itens()->create([
                     'produto_id' => $produto->getKey(),
                     'cidade_id' => $item['cidade_id'],
                     'quantidade' => $item['quantidade'],
                     'preco_unit_int' => $produto->preco_venda_int,
-                    'subtotal_int' => $produto->preco_venda_int * $item['quantidade'],
+                    'subtotal_int' => $subtotal,
+                    'comissao_pct' => $produto->comissao_pct,
+                    'comissao_int' => (int) round($subtotal * (float) $produto->comissao_pct / 100),
                 ]);
             }
 
             $this->recalcularTotal($venda);
-
-            if ($venda->status === StatusVenda::Fechada) {
-                $this->baixarEstoque($venda, $usuario);
-            }
+            $this->baixarEstoque($venda, $usuario);
 
             return $venda->refresh();
         });
     }
 
     /**
-     * Fecha a venda: valida saldo, baixa estoque e registra movimentações.
+     * Fecha a venda, confirmando a baixa de estoque feita na criação.
      *
      * @throws AcaoInvalidaException se a venda não estiver aberta
-     * @throws EstoqueInsuficienteException
      */
-    public function fechar(Venda $venda, ?User $usuario = null): Venda
+    public function fechar(Venda $venda): Venda
     {
         if ($venda->status !== StatusVenda::Aberta) {
             throw new AcaoInvalidaException('Apenas vendas abertas podem ser fechadas.');
         }
 
+        $venda->update(['status' => StatusVenda::Fechada]);
+
+        return $venda->refresh();
+    }
+
+    /**
+     * Cancela uma venda aberta ou fechada: devolve estoque e registra estorno.
+     *
+     * @throws AcaoInvalidaException se a venda já estiver cancelada
+     */
+    public function cancelar(Venda $venda, ?User $usuario = null): Venda
+    {
+        if ($venda->status === StatusVenda::Cancelada) {
+            throw new AcaoInvalidaException('A venda já está cancelada.');
+        }
+
         DB::transaction(function () use ($venda, $usuario) {
-            $venda->update(['status' => StatusVenda::Fechada]);
-            $this->baixarEstoque($venda, $usuario);
+            $this->devolverEstoque($venda, $usuario, "Estorno da venda #{$venda->getKey()}");
+
+            $venda->update(['status' => StatusVenda::Cancelada]);
         });
 
         return $venda->refresh();
     }
 
     /**
-     * Cancela uma venda fechada: devolve estoque e registra estorno.
+     * Exclui a venda. Se ainda estiver aberta, devolve o estoque antes;
+     * cancelada já teve o estoque devolvido.
      *
-     * @throws AcaoInvalidaException se a venda não estiver fechada
+     * @throws AcaoInvalidaException se a venda estiver fechada
      */
-    public function cancelar(Venda $venda, ?User $usuario = null): Venda
+    public function excluir(Venda $venda, ?User $usuario = null): void
     {
-        if ($venda->status !== StatusVenda::Fechada) {
-            throw new AcaoInvalidaException('Apenas vendas fechadas podem ser canceladas.');
+        if ($venda->status === StatusVenda::Fechada) {
+            throw new AcaoInvalidaException('Vendas fechadas não podem ser excluídas.');
         }
 
         DB::transaction(function () use ($venda, $usuario) {
-            foreach ($venda->itens()->with(['produto', 'cidade'])->get() as $item) {
-                $this->estoque->registrar(
-                    produto: $item->produto,
-                    cidade: $item->cidade,
-                    tipo: TipoMovimentacao::Entrada,
-                    quantidade: $item->quantidade,
-                    motivo: MotivoMovimentacao::Estorno,
-                    venda: $venda,
-                    observacoes: "Estorno da venda #{$venda->getKey()}",
-                    user: $usuario,
-                );
+            if ($venda->status === StatusVenda::Aberta) {
+                $this->devolverEstoque($venda, $usuario, "Estorno por exclusão da venda #{$venda->getKey()}");
             }
 
-            $venda->update(['status' => StatusVenda::Cancelada]);
+            $venda->delete();
         });
+    }
 
-        return $venda->refresh();
+    private function devolverEstoque(Venda $venda, ?User $usuario, string $observacoes): void
+    {
+        foreach ($venda->itens()->with(['produto', 'cidade'])->get() as $item) {
+            $this->estoque->registrar(
+                produto: $item->produto,
+                cidade: $item->cidade,
+                tipo: TipoMovimentacao::Entrada,
+                quantidade: $item->quantidade,
+                motivo: MotivoMovimentacao::Estorno,
+                venda: $venda,
+                observacoes: $observacoes,
+                user: $usuario,
+            );
+        }
     }
 
     /**

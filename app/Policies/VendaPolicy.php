@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Policies;
 
+use App\Enums\StatusVenda;
 use App\Models\Venda;
 use Illuminate\Auth\Access\HandlesAuthorization;
 use Illuminate\Foundation\Auth\User as AuthUser;
@@ -36,8 +37,9 @@ class VendaPolicy
 
     public function delete(AuthUser $authUser, Venda $venda): bool
     {
-        return $authUser->can('Delete:Venda')
-            || $venda->vendedor_id === $authUser->vendedor?->getKey();
+        // Admin (super admin do Shield) não passa por aqui e também exclui canceladas.
+        return $venda->status === StatusVenda::Aberta
+            && ($authUser->can('Delete:Venda') || $venda->vendedor_id === $authUser->vendedor?->getKey());
     }
 
     public function deleteAny(AuthUser $authUser): bool
@@ -73,5 +75,20 @@ class VendaPolicy
     public function reorder(AuthUser $authUser): bool
     {
         return $authUser->can('Reorder:Venda');
+    }
+
+    public function fechar(AuthUser $authUser, Venda $venda): bool
+    {
+        return $authUser->can('Fechar:Venda') && $venda->vendedor_id === $authUser->vendedor?->getKey();
+    }
+
+    public function cancelar(AuthUser $authUser, Venda $venda): bool
+    {
+        return $authUser->can('Cancelar:Venda') && $venda->vendedor_id === $authUser->vendedor?->getKey();
+    }
+
+    public function enviarComprovantes(AuthUser $authUser, Venda $venda): bool
+    {
+        return $authUser->can('EnviarComprovantes:Venda') && $venda->vendedor_id === $authUser->vendedor?->getKey();
     }
 }

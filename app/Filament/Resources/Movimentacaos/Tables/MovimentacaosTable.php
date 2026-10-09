@@ -40,7 +40,7 @@ class MovimentacaosTable
                     ->numeric(),
                 TextColumn::make('motivo')
                     ->badge()
-                    ->formatStateUsing(fn (MotivoMovimentacao $state) => ucfirst($state->value)),
+                    ->formatStateUsing(fn (MotivoMovimentacao $state) => $state->getLabel()),
                 TextColumn::make('venda_id')
                     ->label('Venda')
                     ->formatStateUsing(fn ($state) => $state ? "#{$state}" : '—'),
@@ -51,6 +51,7 @@ class MovimentacaosTable
                     ->limit(40)
                     ->toggleable(),
             ])
+            ->defaultSort('created_at', 'desc')
             ->filters([
                 SelectFilter::make('tipo'),
                 SelectFilter::make('motivo'),

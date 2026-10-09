@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\MotivoMovimentacao;
 use App\Enums\TipoMovimentacao;
+use App\Exceptions\AcaoInvalidaException;
 use App\Exceptions\EstoqueInsuficienteException;
 use App\Models\Cidade;
 use App\Models\Movimentacao;
@@ -75,5 +76,39 @@ class EstoqueService
                 'user_id' => $user?->getKey() ?? auth()->id(),
             ]);
         });
+    }
+
+    /**
+     * Transfere saldo entre cidades: saída na origem e entrada no destino,
+     * na mesma transação. O total do produto não muda.
+     *
+     * @return array{saida: Movimentacao, entrada: Movimentacao}
+     *
+     * @throws AcaoInvalidaException
+     * @throws EstoqueInsuficienteException
+     */
+    public function transferir(
+        Produto $produto,
+        Cidade $origem,
+        Cidade $destino,
+        int $quantidade,
+        ?string $observacoes = null,
+        ?User $user = null,
+    ): array {
+        if ($origem->is($destino)) {
+            throw new AcaoInvalidaException('A cidade de destino deve ser diferente da origem.');
+        }
+
+        if ($quantidade <= 0) {
+            throw new AcaoInvalidaException('A quantidade transferida deve ser maior que zero.');
+        }
+
+        $log = "Transferência de {$origem->nome} para {$destino->nome}"
+            .(filled($observacoes) ? ": {$observacoes}" : '');
+
+        return DB::transaction(fn () => [
+            'saida' => $this->registrar($produto, $origem, TipoMovimentacao::Saida, $quantidade, MotivoMovimentacao::Transferencia, observacoes: $log, user: $user),
+            'entrada' => $this->registrar($produto, $destino, TipoMovimentacao::Entrada, $quantidade, MotivoMovimentacao::Transferencia, observacoes: $log, user: $user),
+        ]);
     }
 }

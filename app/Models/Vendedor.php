@@ -10,8 +10,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['user_id', 'telefone', 'comissao_pct', 'ativo'])]
-#[Hidden(['comissao_pct'])]
+#[Fillable(['user_id', 'telefone', 'ativo'])]
+#[Hidden([])]
 class Vendedor extends Model
 {
     /** @use HasFactory<VendedorFactory> */
@@ -22,7 +22,6 @@ class Vendedor extends Model
     protected function casts(): array
     {
         return [
-            'comissao_pct' => 'integer',
             'ativo' => 'boolean',
         ];
     }

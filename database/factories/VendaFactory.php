@@ -33,7 +33,7 @@ class VendaFactory extends Factory
     }
 
     /**
-     * Venda fechada com itens e baixa de estoque.
+     * Venda fechada (a baixa de estoque acontece na criação dos itens via VendaService).
      */
     public function fechada(): static
     {

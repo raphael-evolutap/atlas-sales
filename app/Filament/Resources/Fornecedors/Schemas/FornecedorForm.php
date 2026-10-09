@@ -46,7 +46,6 @@ class FornecedorForm
                             ->icon(Heroicon::MagnifyingGlass)
                             ->action(function (Get $get, Set $set) {
                                 $cnpj = preg_replace('/\D/', '', (string) $get('cnpj'));
-                                dump($cnpj);
                                 if (strlen($cnpj) !== 14) {
                                     Notification::make()
                                         ->title('CNPJ inválido')

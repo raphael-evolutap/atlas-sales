@@ -11,13 +11,24 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
 #[Fillable(['cliente_id', 'vendedor_id', 'data_venda', 'status', 'valor_total_int', 'desconto_int', 'observacoes'])]
 #[Hidden([])]
-class Venda extends Model
+class Venda extends Model implements HasMedia
 {
     /** @use HasFactory<VendaFactory> */
-    use HasFactory, SoftDeletes;
+    use HasFactory, InteractsWithMedia, SoftDeletes;
+
+    public const COLECAO_COMPROVANTES = 'comprovantes';
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection(self::COLECAO_COMPROVANTES)
+            ->useDisk('local')
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp', 'application/pdf']);
+    }
 
     protected function casts(): array
     {

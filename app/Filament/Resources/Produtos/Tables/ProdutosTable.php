@@ -35,6 +35,11 @@ class ProdutosTable
                     ->label('Venda')
                     ->money('BRL', divideBy: 100)
                     ->sortable(),
+                TextColumn::make('comissao_pct')
+                    ->label('Comissão')
+                    ->suffix('%')
+                    ->numeric(decimalPlaces: 2)
+                    ->sortable(),
                 TextColumn::make('estoque_qtd')
                     ->label('Estoque')
                     ->numeric()

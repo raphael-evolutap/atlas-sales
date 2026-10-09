@@ -38,7 +38,7 @@ class MovimentacaoForm
                     ->options(collect(TipoMovimentacao::cases())->mapWithKeys(fn ($case) => [$case->value => ucfirst($case->value)]))
                     ->required(),
                 Select::make('motivo')
-                    ->options(collect(MotivoMovimentacao::cases())->mapWithKeys(fn ($case) => [$case->value => ucfirst($case->value)]))
+                    ->options(collect(MotivoMovimentacao::cases())->mapWithKeys(fn ($case) => [$case->value => $case->getLabel()]))
                     ->required(),
                 TextInput::make('quantidade')
                     ->numeric()

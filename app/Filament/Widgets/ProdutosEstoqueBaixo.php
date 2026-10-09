@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Models\ProdutoEstoque;
+use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget;
@@ -10,6 +11,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class ProdutosEstoqueBaixo extends TableWidget
 {
+    use HasWidgetShield;
+
     protected static ?string $heading = 'Produtos com estoque baixo (por cidade)';
 
     protected static ?int $sort = 5;

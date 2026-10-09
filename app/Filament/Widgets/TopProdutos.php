@@ -4,6 +4,7 @@ namespace App\Filament\Widgets;
 
 use App\Enums\StatusVenda;
 use App\Models\Produto;
+use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget;
@@ -11,6 +12,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class TopProdutos extends TableWidget
 {
+    use HasWidgetShield;
+
     protected static ?string $heading = 'Produtos mais vendidos';
 
     protected static ?int $sort = 6;

@@ -123,7 +123,7 @@ class DadosExemploSeeder extends Seeder
 
         return Vendedor::firstOrCreate(
             ['user_id' => $user->getKey()],
-            ['telefone' => '(11) 98888-7777', 'comissao_pct' => 5, 'ativo' => true],
+            ['telefone' => '(11) 98888-7777', 'ativo' => true],
         );
     }
 
@@ -187,6 +187,7 @@ class DadosExemploSeeder extends Seeder
                     'unidade' => 'un',
                     'preco_custo_int' => $item['custo'],
                     'preco_venda_int' => $item['venda'],
+                    'comissao_pct' => 5,
                     'estoque_minimo' => $item['minimo'],
                     'ativo' => true,
                 ],
@@ -235,7 +236,7 @@ class DadosExemploSeeder extends Seeder
                 ['produto_id' => $produtos['CIM-050']->getKey(), 'cidade_id' => $saoPaulo, 'quantidade' => 30],
                 ['produto_id' => $produtos['ARG-020']->getKey(), 'cidade_id' => $mogi, 'quantidade' => 20],
             ], $admin);
-            $service->fechar($venda1, $admin);
+            $service->fechar($venda1);
         }
 
         if (! $jaExiste($clientes['João Batista Ferreira'])) {
@@ -243,7 +244,7 @@ class DadosExemploSeeder extends Seeder
                 ['produto_id' => $produtos['TIN-018']->getKey(), 'cidade_id' => $saoPaulo, 'quantidade' => 2],
                 ['produto_id' => $produtos['FIO-025']->getKey(), 'cidade_id' => $saoPaulo, 'quantidade' => 1],
             ], $admin);
-            $service->fechar($venda2, $admin);
+            $service->fechar($venda2);
         }
 
         if (! $jaExiste($clientes['Depósito Bom Preço ME'])) {

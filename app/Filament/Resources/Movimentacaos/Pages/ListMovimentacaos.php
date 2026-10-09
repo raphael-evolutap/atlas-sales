@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Movimentacaos\Pages;
 
+use App\Filament\Actions\TransferirEstoqueAction;
 use App\Filament\Resources\Movimentacaos\MovimentacaoResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
@@ -13,6 +14,7 @@ class ListMovimentacaos extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
+            TransferirEstoqueAction::make(),
             CreateAction::make(),
         ];
     }

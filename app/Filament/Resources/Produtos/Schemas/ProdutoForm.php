@@ -51,6 +51,16 @@ class ProdutoForm
                     ->formatStateUsing(fn ($state) => Money::toView($state))
                     ->dehydrateStateUsing(fn ($state) => Money::fromView($state))
                     ->required(),
+                TextInput::make('comissao_pct')
+                    ->label('Comissão do vendedor')
+                    ->suffix('%')
+                    ->numeric()
+                    ->minValue(0)
+                    ->maxValue(100)
+                    ->step(0.01)
+                    ->default(0)
+                    ->required()
+                    ->helperText('Percentual sobre o subtotal do item vendido.'),
                 TextInput::make('estoque_minimo')
                     ->numeric()
                     ->default(0)
