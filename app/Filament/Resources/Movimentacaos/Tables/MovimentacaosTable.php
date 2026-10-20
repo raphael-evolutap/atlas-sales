@@ -28,6 +28,10 @@ class MovimentacaosTable
                     ->label('Cidade')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('lote.numero')
+                    ->label('Lote')
+                    ->searchable()
+                    ->placeholder('—'),
                 TextColumn::make('tipo')
                     ->badge()
                     ->formatStateUsing(fn (TipoMovimentacao $state) => ucfirst($state->value))

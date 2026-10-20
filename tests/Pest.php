@@ -1,5 +1,8 @@
 <?php
 
+use App\Models\Produto;
+use App\Models\ProdutoLote;
+use Database\Factories\ProdutoEstoqueFactory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -44,7 +47,10 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+/**
+ * Lote que recebe o saldo criado por ProdutoEstoque::factory().
+ */
+function lotePadrao(Produto $produto): ProdutoLote
 {
-    // ..
+    return ProdutoLote::doProduto($produto, ProdutoEstoqueFactory::LOTE_PADRAO);
 }

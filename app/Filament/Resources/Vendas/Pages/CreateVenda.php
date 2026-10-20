@@ -18,6 +18,7 @@ class CreateVenda extends CreateRecord
             ->map(fn (array $item) => [
                 'produto_id' => (int) $item['produto_id'],
                 'cidade_id' => (int) $item['cidade_id'],
+                'lote_id' => (int) $item['lote_id'],
                 'quantidade' => (int) $item['quantidade'],
             ])
             ->all();

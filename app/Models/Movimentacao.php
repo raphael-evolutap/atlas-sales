@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['produto_id', 'cidade_id', 'tipo', 'quantidade', 'motivo', 'venda_id', 'observacoes', 'user_id'])]
+#[Fillable(['produto_id', 'cidade_id', 'lote_id', 'tipo', 'quantidade', 'motivo', 'venda_id', 'observacoes', 'user_id'])]
 #[Hidden([])]
 class Movimentacao extends Model
 {
@@ -59,5 +59,13 @@ class Movimentacao extends Model
     public function cidade(): BelongsTo
     {
         return $this->belongsTo(Cidade::class);
+    }
+
+    /**
+     * @return BelongsTo<ProdutoLote, $this>
+     */
+    public function lote(): BelongsTo
+    {
+        return $this->belongsTo(ProdutoLote::class, 'lote_id');
     }
 }

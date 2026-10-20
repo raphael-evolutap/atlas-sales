@@ -103,7 +103,7 @@ it('venda registrada por vendedor é atribuída a ele e entra aberta', function 
         ->fillForm([
             'cliente_id' => Cliente::factory()->create()->getKey(),
             'itens' => [
-                ['produto_id' => $produto->getKey(), 'cidade_id' => $cidade->getKey(), 'quantidade' => 2],
+                ['produto_id' => $produto->getKey(), 'cidade_id' => $cidade->getKey(), 'lote_id' => lotePadrao($produto)->getKey(), 'quantidade' => 2],
             ],
             'status' => StatusVenda::Fechada->value,
         ])

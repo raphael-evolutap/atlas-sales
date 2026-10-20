@@ -12,6 +12,7 @@ use App\Models\DespesaCategoria;
 use App\Models\Fornecedor;
 use App\Models\Grupo;
 use App\Models\Produto;
+use App\Models\ProdutoLote;
 use App\Models\User;
 use App\Models\Venda;
 use App\Models\Vendedor;
@@ -195,10 +196,11 @@ class DadosExemploSeeder extends Seeder
 
             if ($produto->estoque_qtd === 0) {
                 $total = $item['minimo'] * 4;
+                $lote = ProdutoLote::doProduto($produto, "{$item['sku']}-L01");
 
                 foreach ($distribuicao as $cidadeNome => $parcela) {
                     $estoque->registrar(
-                        produto: $produto,
+                        lote: $lote,
                         cidade: $cidades[$cidadeNome],
                         tipo: TipoMovimentacao::Entrada,
                         quantidade: (int) round($total * $parcela),
@@ -233,33 +235,48 @@ class DadosExemploSeeder extends Seeder
 
         if (! $jaExiste($clientes['Construtora Horizonte Ltda'])) {
             $venda1 = $service->criar($this->dadosVenda($clientes['Construtora Horizonte Ltda'], $vendedor), [
-                ['produto_id' => $produtos['CIM-050']->getKey(), 'cidade_id' => $saoPaulo, 'quantidade' => 30],
-                ['produto_id' => $produtos['ARG-020']->getKey(), 'cidade_id' => $mogi, 'quantidade' => 20],
+                $this->item($produtos['CIM-050'], $saoPaulo, 30),
+                $this->item($produtos['ARG-020'], $mogi, 20),
             ], $admin);
             $service->fechar($venda1);
         }
 
         if (! $jaExiste($clientes['João Batista Ferreira'])) {
             $venda2 = $service->criar($this->dadosVenda($clientes['João Batista Ferreira'], $vendedor), [
-                ['produto_id' => $produtos['TIN-018']->getKey(), 'cidade_id' => $saoPaulo, 'quantidade' => 2],
-                ['produto_id' => $produtos['FIO-025']->getKey(), 'cidade_id' => $saoPaulo, 'quantidade' => 1],
+                $this->item($produtos['TIN-018'], $saoPaulo, 2),
+                $this->item($produtos['FIO-025'], $saoPaulo, 1),
             ], $admin);
             $service->fechar($venda2);
         }
 
         if (! $jaExiste($clientes['Depósito Bom Preço ME'])) {
             $venda3 = $service->criar($this->dadosVenda($clientes['Depósito Bom Preço ME'], $vendedor, StatusVenda::Fechada), [
-                ['produto_id' => $produtos['TIJ-008']->getKey(), 'cidade_id' => $mogi, 'quantidade' => 500],
-                ['produto_id' => $produtos['ARE-020']->getKey(), 'cidade_id' => $mogi, 'quantidade' => 40],
+                $this->item($produtos['TIJ-008'], $mogi, 500),
+                $this->item($produtos['ARE-020'], $mogi, 40),
             ], $admin);
             $service->cancelar($venda3, $admin);
         }
 
         if (! $jaExiste($clientes['Fernando Costa Arquitetura'])) {
             $service->criar($this->dadosVenda($clientes['Fernando Costa Arquitetura'], $vendedor, StatusVenda::Aberta), [
-                ['produto_id' => $produtos['TUB-025']->getKey(), 'cidade_id' => $saoPaulo, 'quantidade' => 10],
+                $this->item($produtos['TUB-025'], $saoPaulo, 10),
             ], $admin);
         }
+    }
+
+    /**
+     * Item de venda saindo do primeiro lote do produto.
+     *
+     * @return array{produto_id: int, cidade_id: int, lote_id: int, quantidade: int}
+     */
+    private function item(Produto $produto, int $cidadeId, int $quantidade): array
+    {
+        return [
+            'produto_id' => $produto->getKey(),
+            'cidade_id' => $cidadeId,
+            'lote_id' => (int) $produto->lotes()->orderBy('id')->value('id'),
+            'quantidade' => $quantidade,
+        ];
     }
 
     /**

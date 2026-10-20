@@ -43,7 +43,7 @@ it('vendedor anexa comprovante ao registrar a venda', function () {
         ->fillForm([
             'cliente_id' => Cliente::factory()->create()->getKey(),
             'itens' => [
-                ['produto_id' => $produto->getKey(), 'cidade_id' => $cidade->getKey(), 'quantidade' => 1],
+                ['produto_id' => $produto->getKey(), 'cidade_id' => $cidade->getKey(), 'lote_id' => lotePadrao($produto)->getKey(), 'quantidade' => 1],
             ],
             'comprovantes' => [UploadedFile::fake()->createWithContent('comprovante.pdf', "%PDF-1.4\n%%EOF\n")],
         ])

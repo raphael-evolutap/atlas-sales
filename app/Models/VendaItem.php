@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['venda_id', 'produto_id', 'cidade_id', 'quantidade', 'preco_unit_int', 'subtotal_int', 'comissao_pct', 'comissao_int'])]
+#[Fillable(['venda_id', 'produto_id', 'cidade_id', 'lote_id', 'quantidade', 'preco_unit_int', 'subtotal_int', 'comissao_pct', 'comissao_int'])]
 #[Hidden([])]
 class VendaItem extends Model
 {
@@ -49,5 +49,13 @@ class VendaItem extends Model
     public function cidade(): BelongsTo
     {
         return $this->belongsTo(Cidade::class);
+    }
+
+    /**
+     * @return BelongsTo<ProdutoLote, $this>
+     */
+    public function lote(): BelongsTo
+    {
+        return $this->belongsTo(ProdutoLote::class, 'lote_id');
     }
 }

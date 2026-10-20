@@ -3,6 +3,7 @@
 use App\Enums\StatusVenda;
 use App\Filament\Resources\Vendas\Pages\ListVendas;
 use App\Models\Produto;
+use App\Models\ProdutoLote;
 use App\Models\User;
 use App\Models\Venda;
 use App\Models\VendaItem;
@@ -29,7 +30,8 @@ beforeEach(function () {
 
     $this->venda = Venda::factory()->for($this->vendedor)->create(['status' => StatusVenda::Aberta]);
     $this->produto = Produto::factory()->create(['nome' => 'Cimento CP-II 50kg']);
-    VendaItem::factory()->for($this->venda)->for($this->produto)->count(2)->create(['comissao_int' => 300]);
+    $this->lote = ProdutoLote::factory()->for($this->produto)->create(['numero' => 'L2024-07']);
+    VendaItem::factory()->for($this->venda)->for($this->produto)->count(2)->create(['comissao_int' => 300, 'lote_id' => $this->lote->getKey()]);
 
     actingAs($this->vendedorUser);
 });
@@ -44,6 +46,12 @@ it('visualização mostra itens e comissão da venda', function () {
         ->mountAction(TestAction::make('view')->table($this->venda))
         ->assertMountedActionModalSee('Cimento CP-II 50kg')
         ->assertMountedActionModalSee('6,00');
+});
+
+it('visualização mostra o lote de cada item', function () {
+    Livewire::test(ListVendas::class)
+        ->mountAction(TestAction::make('view')->table($this->venda))
+        ->assertMountedActionModalSee('L2024-07');
 });
 
 it('fecha a venda pelo botão da visualização', function () {

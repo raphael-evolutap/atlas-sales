@@ -61,10 +61,12 @@ class VendaInfolist
                             ->columns(3)
                             ->schema([
                                 TextEntry::make('produto.nome')
-                                    ->label('Produto')
-                                    ->columnSpan(2),
+                                    ->label('Produto'),
                                 TextEntry::make('cidade.nome')
                                     ->label('Cidade'),
+                                TextEntry::make('lote.numero')
+                                    ->label('Lote')
+                                    ->placeholder('—'),
                                 TextEntry::make('quantidade')
                                     ->label('Qtd.')
                                     ->numeric(),

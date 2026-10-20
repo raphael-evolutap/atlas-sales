@@ -69,7 +69,7 @@ class ProdutoForm
                     ->default(true)
                     ->required(),
                 Repeater::make('estoques')
-                    ->label('Estoque por cidade')
+                    ->label('Estoque por cidade e lote')
                     ->schema([
                         Select::make('cidade_id')
                             ->label('Cidade')
@@ -86,6 +86,10 @@ class ProdutoForm
                                     ->maxLength(2),
                             ])
                             ->createOptionUsing(fn (array $data): int => Cidade::create($data)->getKey()),
+                        TextInput::make('lote')
+                            ->label('Lote')
+                            ->required()
+                            ->maxLength(255),
                         TextInput::make('quantidade')
                             ->numeric()
                             ->minValue(0)
@@ -98,9 +102,9 @@ class ProdutoForm
                             ->default(0)
                             ->required(),
                     ])
-                    ->columns(3)
+                    ->columns(4)
                     ->defaultItems(0)
-                    ->addActionLabel('Adicionar cidade')
+                    ->addActionLabel('Adicionar cidade/lote')
                     ->visible(fn (string $operation): bool => $operation === 'create')
                     ->columnSpanFull(),
             ]);

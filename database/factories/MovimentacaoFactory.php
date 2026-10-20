@@ -6,6 +6,7 @@ use App\Enums\MotivoMovimentacao;
 use App\Enums\TipoMovimentacao;
 use App\Models\Movimentacao;
 use App\Models\Produto;
+use App\Models\ProdutoLote;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -23,6 +24,7 @@ class MovimentacaoFactory extends Factory
     {
         return [
             'produto_id' => Produto::factory(),
+            'lote_id' => fn (array $atributos) => ProdutoLote::factory()->state(['produto_id' => $atributos['produto_id']]),
             'tipo' => TipoMovimentacao::Entrada,
             'quantidade' => $this->faker->numberBetween(1, 50),
             'motivo' => MotivoMovimentacao::Compra,

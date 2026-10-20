@@ -8,6 +8,7 @@ use App\Models\Cidade;
 use App\Models\Cliente;
 use App\Models\Produto;
 use App\Models\ProdutoEstoque;
+use App\Models\ProdutoLote;
 use App\Models\User;
 use App\Models\Vendedor;
 use App\Services\VendaService;
@@ -40,6 +41,7 @@ function itemVenda(Produto $produto, Cidade $cidade, int $quantidade): array
     return [
         'produto_id' => $produto->getKey(),
         'cidade_id' => $cidade->getKey(),
+        'lote_id' => lotePadrao($produto)->getKey(),
         'quantidade' => $quantidade,
     ];
 }
@@ -255,3 +257,59 @@ it('comissão da venda não muda quando o percentual do produto muda', function 
 
     expect($venda->itens->first()->fresh()->comissao_int)->toBe(100);
 });
+
+it('venda baixa somente o lote escolhido e registra o lote no item e na movimentação', function () {
+    $produto = Produto::factory()->create();
+    $estoque = ProdutoEstoque::factory()->create([
+        'produto_id' => $produto->getKey(),
+        'cidade_id' => $this->cidade->getKey(),
+        'quantidade' => 10,
+    ]);
+    $outroLote = ProdutoLote::factory()->for($produto)->create();
+    $estoque->lotes()->create(['lote_id' => $outroLote->getKey(), 'quantidade' => 4]);
+    $estoque->increment('quantidade', 4);
+
+    $venda = $this->service->criar(dadosVenda(), [[
+        'produto_id' => $produto->getKey(),
+        'cidade_id' => $this->cidade->getKey(),
+        'lote_id' => $outroLote->getKey(),
+        'quantidade' => 3,
+    ]]);
+
+    expect($venda->itens->sole()->lote_id)->toBe($outroLote->getKey())
+        ->and($venda->movimentacoes()->sole()->lote_id)->toBe($outroLote->getKey())
+        ->and($estoque->lotes()->where('lote_id', $outroLote->getKey())->value('quantidade'))->toBe(1)
+        ->and($estoque->lotes()->where('lote_id', lotePadrao($produto)->getKey())->value('quantidade'))->toBe(10)
+        ->and($estoque->fresh()->quantidade)->toBe(11);
+});
+
+it('cancelar venda devolve estoque ao lote do item', function () {
+    $produto = Produto::factory()->create();
+    $estoque = ProdutoEstoque::factory()->create([
+        'produto_id' => $produto->getKey(),
+        'cidade_id' => $this->cidade->getKey(),
+        'quantidade' => 10,
+    ]);
+
+    $venda = $this->service->criar(dadosVenda(), [itemVenda($produto, $this->cidade, 4)]);
+    $this->service->cancelar($venda);
+
+    expect($estoque->lotes()->sole()->quantidade)->toBe(10)
+        ->and($venda->movimentacoes()->where('motivo', MotivoMovimentacao::Estorno)->sole()->lote_id)->toBe(lotePadrao($produto)->getKey());
+});
+
+it('rejeita lote de outro produto', function () {
+    $produto = Produto::factory()->create();
+    ProdutoEstoque::factory()->create([
+        'produto_id' => $produto->getKey(),
+        'cidade_id' => $this->cidade->getKey(),
+        'quantidade' => 10,
+    ]);
+
+    $this->service->criar(dadosVenda(), [[
+        'produto_id' => $produto->getKey(),
+        'cidade_id' => $this->cidade->getKey(),
+        'lote_id' => ProdutoLote::factory()->create()->getKey(),
+        'quantidade' => 1,
+    ]]);
+})->throws(AcaoInvalidaException::class);

@@ -7,6 +7,7 @@ use App\Enums\TipoMovimentacao;
 use App\Filament\Resources\Produtos\ProdutoResource;
 use App\Models\Cidade;
 use App\Models\Produto;
+use App\Models\ProdutoLote;
 use App\Services\EstoqueService;
 use Filament\Resources\Pages\CreateRecord;
 
@@ -25,7 +26,7 @@ class CreateProduto extends CreateRecord
 
         foreach ($estoques as $linha) {
             $estoqueService->registrar(
-                produto: $produto,
+                lote: ProdutoLote::doProduto($produto, $linha['lote']),
                 cidade: Cidade::findOrFail($linha['cidade_id']),
                 tipo: TipoMovimentacao::Entrada,
                 quantidade: (int) ($linha['quantidade'] ?? 0),

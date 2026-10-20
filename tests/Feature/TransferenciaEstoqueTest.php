@@ -44,7 +44,7 @@ function saldoEm(Cidade $cidade): int
 }
 
 it('transfere saldo entre cidades sem alterar o total do produto', function () {
-    $this->service->transferir($this->produto, $this->origem, $this->destino, 4);
+    $this->service->transferir(lotePadrao($this->produto), $this->origem, $this->destino, 4);
 
     expect(saldoEm($this->origem))->toBe(6)
         ->and(saldoEm($this->destino))->toBe(4)
@@ -52,7 +52,7 @@ it('transfere saldo entre cidades sem alterar o total do produto', function () {
 });
 
 it('registra saída e entrada com log da transferência', function () {
-    $this->service->transferir($this->produto, $this->origem, $this->destino, 4, 'Reposição da loja');
+    $this->service->transferir(lotePadrao($this->produto), $this->origem, $this->destino, 4, 'Reposição da loja');
 
     $movimentacoes = $this->produto->movimentacoes()->orderBy('id')->get();
 
@@ -67,7 +67,7 @@ it('registra saída e entrada com log da transferência', function () {
 });
 
 it('não grava nada quando falta saldo na origem', function () {
-    expect(fn () => $this->service->transferir($this->produto, $this->origem, $this->destino, 11))
+    expect(fn () => $this->service->transferir(lotePadrao($this->produto), $this->origem, $this->destino, 11))
         ->toThrow(EstoqueInsuficienteException::class);
 
     expect(saldoEm($this->origem))->toBe(10)
@@ -76,7 +76,7 @@ it('não grava nada quando falta saldo na origem', function () {
 });
 
 it('não transfere para a mesma cidade', function () {
-    $this->service->transferir($this->produto, $this->origem, $this->origem, 1);
+    $this->service->transferir(lotePadrao($this->produto), $this->origem, $this->origem, 1);
 })->throws(AcaoInvalidaException::class);
 
 it('transfere pela listagem de movimentações', function () {
@@ -84,6 +84,7 @@ it('transfere pela listagem de movimentações', function () {
         ->callAction('transferirEstoque', [
             'produto_id' => $this->produto->getKey(),
             'cidade_origem_id' => $this->origem->getKey(),
+            'lote_id' => lotePadrao($this->produto)->getKey(),
             'cidade_destino_id' => $this->destino->getKey(),
             'quantidade' => 3,
         ])
@@ -99,6 +100,7 @@ it('valida quantidade acima do saldo da origem no formulário', function () {
         ->callAction('transferirEstoque', [
             'produto_id' => $this->produto->getKey(),
             'cidade_origem_id' => $this->origem->getKey(),
+            'lote_id' => lotePadrao($this->produto)->getKey(),
             'cidade_destino_id' => $this->destino->getKey(),
             'quantidade' => 50,
         ])
@@ -113,6 +115,7 @@ it('transfere a partir do estoque da cidade no produto', function () {
         'pageClass' => EditProduto::class,
     ])
         ->callAction(TestAction::make('transferir')->table($this->estoqueOrigem), [
+            'lote_id' => lotePadrao($this->produto)->getKey(),
             'cidade_destino_id' => $this->destino->getKey(),
             'quantidade' => 5,
         ])
@@ -120,4 +123,23 @@ it('transfere a partir do estoque da cidade no produto', function () {
 
     expect(saldoEm($this->origem))->toBe(5)
         ->and(saldoEm($this->destino))->toBe(5);
+});
+
+it('transferência leva o saldo para o mesmo lote no destino', function () {
+    $lote = lotePadrao($this->produto);
+
+    $resultado = $this->service->transferir($lote, $this->origem, $this->destino, 4);
+
+    $saldoDestino = ProdutoEstoque::query()
+        ->where('produto_id', $this->produto->getKey())
+        ->where('cidade_id', $this->destino->getKey())
+        ->sole()
+        ->lotes()
+        ->sole();
+
+    expect($saldoDestino->lote_id)->toBe($lote->getKey())
+        ->and($saldoDestino->quantidade)->toBe(4)
+        ->and($this->estoqueOrigem->lotes()->sole()->quantidade)->toBe(6)
+        ->and($resultado['saida']->lote_id)->toBe($lote->getKey())
+        ->and($resultado['entrada']->lote_id)->toBe($lote->getKey());
 });

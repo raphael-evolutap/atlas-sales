@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Produto;
+use App\Models\ProdutoLote;
 use App\Models\Venda;
 use App\Models\VendaItem;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -25,6 +26,7 @@ class VendaItemFactory extends Factory
         return [
             'venda_id' => Venda::factory(),
             'produto_id' => Produto::factory(),
+            'lote_id' => fn (array $atributos) => ProdutoLote::factory()->state(['produto_id' => $atributos['produto_id']]),
             'quantidade' => $quantidade,
             'preco_unit_int' => $precoUnit,
             'subtotal_int' => $quantidade * $precoUnit,

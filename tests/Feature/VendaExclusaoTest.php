@@ -47,6 +47,7 @@ function criarVenda(StatusVenda $status = StatusVenda::Aberta): Venda
     ], [[
         'produto_id' => test()->produto->getKey(),
         'cidade_id' => test()->cidade->getKey(),
+        'lote_id' => lotePadrao(test()->produto)->getKey(),
         'quantidade' => 3,
     ]]);
 

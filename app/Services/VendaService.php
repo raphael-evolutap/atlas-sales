@@ -8,6 +8,7 @@ use App\Enums\TipoMovimentacao;
 use App\Exceptions\AcaoInvalidaException;
 use App\Exceptions\EstoqueInsuficienteException;
 use App\Models\Produto;
+use App\Models\ProdutoLote;
 use App\Models\User;
 use App\Models\Venda;
 use Illuminate\Support\Facades\DB;
@@ -17,12 +18,13 @@ class VendaService
     public function __construct(private EstoqueService $estoque) {}
 
     /**
-     * Cria a venda com itens (snapshot de preço, comissão e cidade), calcula o total
+     * Cria a venda com itens (snapshot de preço, comissão, cidade e lote), calcula o total
      * e já baixa o estoque dos itens.
      *
      * @param  array<string, mixed>  $dados  cliente_id, vendedor_id, data_venda, desconto_int, observacoes, status
-     * @param  array<int, array{produto_id: int, cidade_id: int, quantidade: int}>  $itens
+     * @param  array<int, array{produto_id: int, cidade_id: int, lote_id: int, quantidade: int}>  $itens
      *
+     * @throws AcaoInvalidaException se o lote não pertencer ao produto
      * @throws EstoqueInsuficienteException
      */
     public function criar(array $dados, array $itens, ?User $usuario = null): Venda
@@ -34,13 +36,17 @@ class VendaService
                 'valor_total_int' => 0,
             ]);
 
+            $lotes = ProdutoLote::query()->whereKey(array_column($itens, 'lote_id'))->get()->keyBy('id');
+
             foreach ($itens as $item) {
                 $produto = Produto::findOrFail($item['produto_id']);
+                $lote = $this->loteDoProduto($lotes->get($item['lote_id']), $produto);
                 $subtotal = $produto->preco_venda_int * $item['quantidade'];
 
                 $venda->itens()->create([
                     'produto_id' => $produto->getKey(),
                     'cidade_id' => $item['cidade_id'],
+                    'lote_id' => $lote->getKey(),
                     'quantidade' => $item['quantidade'],
                     'preco_unit_int' => $produto->preco_venda_int,
                     'subtotal_int' => $subtotal,
@@ -115,9 +121,9 @@ class VendaService
 
     private function devolverEstoque(Venda $venda, ?User $usuario, string $observacoes): void
     {
-        foreach ($venda->itens()->with(['produto', 'cidade'])->get() as $item) {
+        foreach ($venda->itens()->with(['cidade', 'lote.produto'])->get() as $item) {
             $this->estoque->registrar(
-                produto: $item->produto,
+                lote: $item->lote,
                 cidade: $item->cidade,
                 tipo: TipoMovimentacao::Entrada,
                 quantidade: $item->quantidade,
@@ -134,9 +140,9 @@ class VendaService
      */
     private function baixarEstoque(Venda $venda, ?User $usuario): void
     {
-        foreach ($venda->itens()->with(['produto', 'cidade'])->get() as $item) {
+        foreach ($venda->itens()->with(['cidade', 'lote.produto'])->get() as $item) {
             $this->estoque->registrar(
-                produto: $item->produto,
+                lote: $item->lote,
                 cidade: $item->cidade,
                 tipo: TipoMovimentacao::Saida,
                 quantidade: $item->quantidade,
@@ -145,6 +151,18 @@ class VendaService
                 user: $usuario,
             );
         }
+    }
+
+    /**
+     * @throws AcaoInvalidaException
+     */
+    private function loteDoProduto(?ProdutoLote $lote, Produto $produto): ProdutoLote
+    {
+        if ($lote === null || (int) $lote->produto_id !== (int) $produto->getKey()) {
+            throw new AcaoInvalidaException("Lote inválido para o produto {$produto->nome}.");
+        }
+
+        return $lote;
     }
 
     private function recalcularTotal(Venda $venda): void

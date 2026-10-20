@@ -65,4 +65,12 @@ class Produto extends Model
     {
         return $this->hasMany(ProdutoEstoque::class);
     }
+
+    /**
+     * @return HasMany<ProdutoLote, $this>
+     */
+    public function lotes(): HasMany
+    {
+        return $this->hasMany(ProdutoLote::class);
+    }
 }

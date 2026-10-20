@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(['produto_id', 'cidade_id', 'quantidade', 'estoque_minimo'])]
 #[Hidden([])]
@@ -43,5 +44,13 @@ class ProdutoEstoque extends Model
     public function cidade(): BelongsTo
     {
         return $this->belongsTo(Cidade::class);
+    }
+
+    /**
+     * @return HasMany<ProdutoEstoqueLote, $this>
+     */
+    public function lotes(): HasMany
+    {
+        return $this->hasMany(ProdutoEstoqueLote::class);
     }
 }

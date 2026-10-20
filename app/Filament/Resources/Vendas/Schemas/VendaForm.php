@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Vendas\Schemas;
 
 use App\Enums\StatusVenda;
+use App\Filament\Forms\LoteSelect;
 use App\Models\Cidade;
 use App\Models\Produto;
 use App\Models\ProdutoEstoque;
@@ -16,6 +17,7 @@ use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Leandrocfe\FilamentPtbrFormFields\Money as FilamentPtbrFormFieldsMoney;
 
@@ -61,6 +63,10 @@ class VendaForm
                             ->searchable()
                             ->preload()
                             ->live()
+                            ->afterStateUpdated(function (Set $set): void {
+                                $set('cidade_id', null);
+                                $set('lote_id', null);
+                            })
                             ->columnSpan(1),
                         Select::make('cidade_id')
                             ->label('Cidade')
@@ -94,6 +100,13 @@ class VendaForm
                                     ->maxLength(2),
                             ])
                             ->createOptionUsing(fn (array $data): int => Cidade::create($data)->getKey())
+                            ->live()
+                            ->afterStateUpdated(fn (Set $set) => $set('lote_id', null))
+                            ->columnSpan(1),
+                        LoteSelect::comSaldo(
+                            produtoId: fn (Get $get) => $get('produto_id'),
+                            cidadeId: fn (Get $get) => $get('cidade_id'),
+                        )
                             ->columnSpan(1),
                         TextInput::make('quantidade')
                             ->numeric()
@@ -101,7 +114,7 @@ class VendaForm
                             ->required()
                             ->columnSpan(1),
                     ])
-                    ->columns(3)
+                    ->columns(4)
                     ->defaultItems(1)
                     ->required()
                     ->columnSpanFull(),
