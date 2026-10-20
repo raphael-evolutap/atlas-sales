@@ -1,12 +1,14 @@
 {
     "agents": [
-        "claude_code"
+        "claude_code",
+        "pi"
     ],
     "cloud": false,
     "guidelines": true,
     "mcp": true,
     "nightwatch": false,
     "packages": [
+        "spatie/laravel-medialibrary",
         "filament/filament"
     ],
     "sail": false,
@@ -15,6 +17,7 @@
         "laravel-best-practices",
         "testing-best-practices",
         "tailwindcss-development",
-        "filament-development"
+        "filament-development",
+        "medialibrary-development"
     ]
 }
