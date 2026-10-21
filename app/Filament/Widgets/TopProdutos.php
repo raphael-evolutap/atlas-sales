@@ -4,6 +4,7 @@ namespace App\Filament\Widgets;
 
 use App\Enums\StatusVenda;
 use App\Models\Produto;
+use App\Models\VendaItem;
 use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -26,15 +27,24 @@ class TopProdutos extends TableWidget
     public function table(Table $table): Table
     {
         return $table
+            // Agrega numa subquery por produto_id: assim o GROUP BY não precisa listar
+            // as colunas de produtos (ONLY_FULL_GROUP_BY do MySQL) e não quebra quando surgem colunas novas.
             ->query(fn (): Builder => Produto::query()
-                ->select('produtos.*')
-                ->selectRaw('coalesce(sum(venda_items.quantidade), 0) as vendido_qtd')
-                ->selectRaw('coalesce(sum(venda_items.subtotal_int), 0) as total_int')
-                ->join('venda_items', 'venda_items.produto_id', '=', 'produtos.id')
-                ->join('vendas', 'vendas.id', '=', 'venda_items.venda_id')
-                ->where('vendas.status', StatusVenda::Fechada->value)
-                ->groupBy('produtos.id', 'produtos.fornecedor_id', 'produtos.grupo_id', 'produtos.nome', 'produtos.sku', 'produtos.unidade', 'produtos.preco_custo_int', 'produtos.preco_venda_int', 'produtos.estoque_qtd', 'produtos.estoque_minimo', 'produtos.ativo', 'produtos.created_at', 'produtos.updated_at', 'produtos.deleted_at')
-                ->orderByDesc('vendido_qtd'))
+                ->select('produtos.*', 'vendido.vendido_qtd', 'vendido.total_int')
+                ->joinSub(
+                    VendaItem::query()
+                        ->join('vendas', 'vendas.id', '=', 'venda_items.venda_id')
+                        ->where('vendas.status', StatusVenda::Fechada->value)
+                        ->groupBy('venda_items.produto_id')
+                        ->select('venda_items.produto_id')
+                        ->selectRaw('coalesce(sum(venda_items.quantidade), 0) as vendido_qtd')
+                        ->selectRaw('coalesce(sum(venda_items.subtotal_int), 0) as total_int'),
+                    'vendido',
+                    'vendido.produto_id',
+                    '=',
+                    'produtos.id',
+                )
+                ->orderByDesc('vendido.vendido_qtd'))
             ->columns([
                 TextColumn::make('nome')
                     ->label('Produto'),

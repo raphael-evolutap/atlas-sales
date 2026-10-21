@@ -26,14 +26,19 @@ class DadosExemploSeeder extends Seeder
      * @var array<int, array{nome: string, sku: string, custo: int, venda: int, minimo: int}>
      */
     private array $produtos = [
-        ['nome' => 'Cimento CP-II 50kg', 'sku' => 'CIM-050', 'custo' => 2890, 'venda' => 3590, 'minimo' => 20],
-        ['nome' => 'Areia Média Sacada 20kg', 'sku' => 'ARE-020', 'custo' => 850, 'venda' => 1200, 'minimo' => 30],
-        ['nome' => 'Tijolo Cerâmico 8 Furos', 'sku' => 'TIJ-008', 'custo' => 190, 'venda' => 290, 'minimo' => 500],
-        ['nome' => 'Tinta Acrílica Branca 18L', 'sku' => 'TIN-018', 'custo' => 18900, 'venda' => 24900, 'minimo' => 10],
-        ['nome' => 'Argamassa AC-II 20kg', 'sku' => 'ARG-020', 'custo' => 1450, 'venda' => 1990, 'minimo' => 25],
-        ['nome' => 'Fio Flexível 2,5mm 100m', 'sku' => 'FIO-025', 'custo' => 12900, 'venda' => 16900, 'minimo' => 10],
-        ['nome' => 'Tubo PVC 25mm 6m', 'sku' => 'TUB-025', 'custo' => 2100, 'venda' => 2990, 'minimo' => 15],
-        ['nome' => 'Parafuso Sextavado 10un', 'sku' => 'PAR-010', 'custo' => 690, 'venda' => 990, 'minimo' => 40],
+        // Emagrecedores (agonistas de GLP-1/GIP)
+        ['nome' => 'Semaglutida 1mg Caneta', 'sku' => 'SEM-010', 'custo' => 45000, 'venda' => 79900, 'minimo' => 5],
+        ['nome' => 'Semaglutida 2,4mg Caneta', 'sku' => 'SEM-024', 'custo' => 72000, 'venda' => 119900, 'minimo' => 5],
+        ['nome' => 'Liraglutida 6mg/ml Caneta 3ml', 'sku' => 'LIR-006', 'custo' => 38000, 'venda' => 64900, 'minimo' => 5],
+        ['nome' => 'Tirzepatida 5mg Caneta', 'sku' => 'TIR-005', 'custo' => 89000, 'venda' => 149900, 'minimo' => 4],
+        ['nome' => 'Tirzepatida 10mg Caneta', 'sku' => 'TIR-010', 'custo' => 120000, 'venda' => 199900, 'minimo' => 4],
+        // Peptídeos
+        ['nome' => 'BPC-157 5mg Frasco', 'sku' => 'BPC-005', 'custo' => 9000, 'venda' => 18900, 'minimo' => 10],
+        ['nome' => 'TB-500 5mg Frasco', 'sku' => 'TB5-005', 'custo' => 11000, 'venda' => 21900, 'minimo' => 10],
+        ['nome' => 'Ipamorelin 5mg Frasco', 'sku' => 'IPA-005', 'custo' => 8500, 'venda' => 16900, 'minimo' => 10],
+        ['nome' => 'CJC-1295 2mg Frasco', 'sku' => 'CJC-002', 'custo' => 9500, 'venda' => 18500, 'minimo' => 10],
+        // Acessório
+        ['nome' => 'Água Bacteriostática 10ml', 'sku' => 'AGB-010', 'custo' => 1500, 'venda' => 3500, 'minimo' => 20],
     ];
 
     public function run(): void
@@ -97,9 +102,9 @@ class DadosExemploSeeder extends Seeder
     private function seedFornecedores(): array
     {
         $dados = [
-            ['nome' => 'Casa do Construtor Distribuidora', 'cnpj' => '12.345.678/0001-90', 'cidade' => 'São Paulo', 'uf' => 'SP'],
-            ['nome' => 'Tintas & Cia Ltda', 'cnpj' => '98.765.432/0001-10', 'cidade' => 'Campinas', 'uf' => 'SP'],
-            ['nome' => 'Elétrica Central Atacado', 'cnpj' => '45.678.912/0001-33', 'cidade' => 'Sorocaba', 'uf' => 'SP'],
+            ['nome' => 'Farma Lab Distribuidora', 'cnpj' => '12.345.678/0001-90', 'cidade' => 'São Paulo', 'uf' => 'SP'],
+            ['nome' => 'BioPeptídeos Importadora Ltda', 'cnpj' => '98.765.432/0001-10', 'cidade' => 'Campinas', 'uf' => 'SP'],
+            ['nome' => 'Insumos Médicos Central', 'cnpj' => '45.678.912/0001-33', 'cidade' => 'Sorocaba', 'uf' => 'SP'],
         ];
 
         $fornecedores = [];
@@ -135,12 +140,12 @@ class DadosExemploSeeder extends Seeder
     private function seedClientes(array $grupos): array
     {
         $dados = [
-            ['nome' => 'Construtora Horizonte Ltda', 'grupo' => '1', 'cpf_cnpj' => '11.222.333/0001-44'],
+            ['nome' => 'Clínica Horizonte Emagrecimento Ltda', 'grupo' => '1', 'cpf_cnpj' => '11.222.333/0001-44'],
             ['nome' => 'João Batista Ferreira', 'grupo' => '2', 'cpf_cnpj' => '123.456.789-00'],
             ['nome' => 'Maria Aparecida Souza', 'grupo' => '3', 'cpf_cnpj' => '987.654.321-00'],
-            ['nome' => 'Depósito Bom Preço ME', 'grupo' => '4', 'cpf_cnpj' => '22.333.444/0001-55'],
-            ['nome' => 'Fernando Costa Arquitetura', 'grupo' => '1', 'cpf_cnpj' => '333.444.555-66'],
-            ['nome' => 'Hidráulica São Jorge', 'grupo' => '2', 'cpf_cnpj' => '44.555.666/0001-77'],
+            ['nome' => 'Farmácia de Manipulação Bom Preço ME', 'grupo' => '4', 'cpf_cnpj' => '22.333.444/0001-55'],
+            ['nome' => 'Dr. Fernando Costa Nutrologia', 'grupo' => '1', 'cpf_cnpj' => '333.444.555-66'],
+            ['nome' => 'Clínica Vida Leve', 'grupo' => '2', 'cpf_cnpj' => '44.555.666/0001-77'],
         ];
 
         $clientes = [];
@@ -233,33 +238,34 @@ class DadosExemploSeeder extends Seeder
             ->where('vendedor_id', $vendedor->getKey())
             ->exists();
 
-        if (! $jaExiste($clientes['Construtora Horizonte Ltda'])) {
-            $venda1 = $service->criar($this->dadosVenda($clientes['Construtora Horizonte Ltda'], $vendedor), [
-                $this->item($produtos['CIM-050'], $saoPaulo, 30),
-                $this->item($produtos['ARG-020'], $mogi, 20),
+        if (! $jaExiste($clientes['Clínica Horizonte Emagrecimento Ltda'])) {
+            $venda1 = $service->criar($this->dadosVenda($clientes['Clínica Horizonte Emagrecimento Ltda'], $vendedor), [
+                $this->item($produtos['SEM-010'], $saoPaulo, 3),
+                $this->item($produtos['LIR-006'], $mogi, 2),
             ], $admin);
             $service->fechar($venda1);
         }
 
         if (! $jaExiste($clientes['João Batista Ferreira'])) {
             $venda2 = $service->criar($this->dadosVenda($clientes['João Batista Ferreira'], $vendedor), [
-                $this->item($produtos['TIN-018'], $saoPaulo, 2),
-                $this->item($produtos['FIO-025'], $saoPaulo, 1),
+                $this->item($produtos['TIR-005'], $saoPaulo, 2),
+                $this->item($produtos['AGB-010'], $saoPaulo, 5),
             ], $admin);
             $service->fechar($venda2);
         }
 
-        if (! $jaExiste($clientes['Depósito Bom Preço ME'])) {
-            $venda3 = $service->criar($this->dadosVenda($clientes['Depósito Bom Preço ME'], $vendedor, StatusVenda::Fechada), [
-                $this->item($produtos['TIJ-008'], $mogi, 500),
-                $this->item($produtos['ARE-020'], $mogi, 40),
+        if (! $jaExiste($clientes['Farmácia de Manipulação Bom Preço ME'])) {
+            $venda3 = $service->criar($this->dadosVenda($clientes['Farmácia de Manipulação Bom Preço ME'], $vendedor, StatusVenda::Fechada), [
+                $this->item($produtos['BPC-005'], $mogi, 10),
+                $this->item($produtos['TB5-005'], $mogi, 5),
             ], $admin);
             $service->cancelar($venda3, $admin);
         }
 
-        if (! $jaExiste($clientes['Fernando Costa Arquitetura'])) {
-            $service->criar($this->dadosVenda($clientes['Fernando Costa Arquitetura'], $vendedor, StatusVenda::Aberta), [
-                $this->item($produtos['TUB-025'], $saoPaulo, 10),
+        if (! $jaExiste($clientes['Dr. Fernando Costa Nutrologia'])) {
+            $service->criar($this->dadosVenda($clientes['Dr. Fernando Costa Nutrologia'], $vendedor, StatusVenda::Aberta), [
+                $this->item($produtos['IPA-005'], $saoPaulo, 4),
+                $this->item($produtos['CJC-002'], $saoPaulo, 4),
             ], $admin);
         }
     }
@@ -306,7 +312,7 @@ class DadosExemploSeeder extends Seeder
             ['descricao' => 'Internet fibra 500MB', 'categoria' => 'Internet', 'valor' => 12990, 'pago' => false],
             ['descricao' => 'Salários equipe vendas', 'categoria' => 'Salários', 'valor' => 1250000, 'pago' => false],
             ['descricao' => 'Impostos DAS', 'categoria' => 'Impostos', 'valor' => 34500, 'pago' => false],
-            ['descricao' => 'Frete de mercadorias', 'categoria' => 'Outro', 'valor' => 23000, 'pago' => true, 'fornecedor' => 'Casa do Construtor Distribuidora'],
+            ['descricao' => 'Frete refrigerado de mercadorias', 'categoria' => 'Outro', 'valor' => 23000, 'pago' => true, 'fornecedor' => 'Farma Lab Distribuidora'],
         ];
 
         foreach ($dados as $item) {
